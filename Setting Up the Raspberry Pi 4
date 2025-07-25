@@ -1,0 +1,37 @@
+#Install Dependencies:
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install python3-pip
+sudo apt-get install libatlas-base-dev
+sudo apt-get install libopenjp2-7
+sudo apt-get install libtiff5
+sudo apt-get install libjpeg-dev
+sudo apt-get install libjasper-dev
+sudo apt-get install python3-opencv
+
+#Install Python Libraries:
+pip3 install torch torchvision
+pip3 install opencv-python
+pip3 install opencv-python-headless
+pip3 install numpy
+pip3 install yolov5
+
+#Clone YOLOv5 Repository:
+git clone https://github.com/ultralytics/yolov5
+cd yolov5
+pip3 install -r requirements.txt
+
+#If your best.pt model file is stored in a GitHub repository, start by cloning the repository to your Raspberry Pi:
+git clone https://github.com/<your-username>/<your-repo>.git
+cd <your-repo>
+mv /home/pi/<your-repo>/path/to/best.pt /home/pi/yolov5/
+
+#Or if the file is large and stored as a release asset, or in a different branch, you may need to download it directly:
+wget https://github.com/<your-username>/<your-repo>/releases/download/<version>/best.pt
+mv best.pt /home/pi/yolov5/
+
+# Run YOLOv5 with best.pt on the Camera
+cd /home/pi/yolov5/
+python3 detect.py --weights best.pt --source 0
+
+

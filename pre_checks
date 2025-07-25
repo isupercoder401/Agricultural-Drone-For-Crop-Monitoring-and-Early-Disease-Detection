@@ -1,0 +1,56 @@
+from pymavlink import mavutil
+import time
+
+def connect_pixhawk(port):
+    try:
+        connection = mavutil.mavlink_connection(port, baud=115200)
+        print(f"Connected to Pixhawk on {port}")
+        return connection
+    except Exception as e:
+        print(f"Error connecting to Pixhawk: {e}")
+        return None
+
+def pre_arm_checks(mav):
+    try:
+        # Check GPS fix
+        gps_fix_type = mav.recv_match(type='GPS_RAW_INT', blocking=True).fix_type
+        gps_fix_available = gps_fix_type >= 3
+        print(f"GPS Fix: {'Available' if gps_fix_available else 'Not Available'}")
+
+        # Check battery voltage
+        battery_voltage = mav.recv_match(type='SYS_STATUS', blocking=True).voltage_battery / 1000.0
+        print(f"Battery Voltage: {battery_voltage}V")
+
+        # Check vehicle mode
+        vehicle_mode = mav.recv_match(type='HEARTBEAT', blocking=True).custom_mode
+        print(f"Vehicle Mode: {vehicle_mode}")
+
+        # Check safety switch
+        safety_switch_status = mav.recv_match(type='HEARTBEAT', blocking=True).base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED
+        print(f"Safety switch {'Pressed (Armed)' if safety_switch_status else 'Not Pressed (Disarmed)'}")
+
+        # Add more checks as needed
+
+        # Check if all pre-arm checks passed
+        all_checks_passed = gps_fix_available and battery_voltage > 0 and safety_switch_status
+        return all_checks_passed
+
+    except Exception as e:
+        print(f"Error during pre-arm checks: {e}")
+        return False
+
+def main():
+    usb_com_port = 'COM11'  # Change this to the correct COM port
+    pixhawk_conn = connect_pixhawk(usb_com_port)
+
+    if pixhawk_conn:
+        if pre_arm_checks(pixhawk_conn):
+            print("All pre-arm checks passed. Vehicle is ready to arm.")
+        else:
+            print("Pre-arm checks failed. Vehicle is not ready to arm.")
+
+        # Close the connection when done
+        pixhawk_conn.close()
+
+if __name__ == "__main__":
+    main()
